@@ -7,7 +7,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1Op
  * @param {object} params - parameter tambahan (optional)
  */
 async function apiGet(action){
-  const url = `https://script.google.com/macros/s/DEPLOYMENT_ID/exec?action=${action}`;
+  const url = `https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1OpMv4SjO9XVJsTzSO1w7km2XMCv4RYjxdKHMJYNRU9EclY_fH/exec?action=${action}`;
   const res = await fetch(url);
   return res.json(); // harus array langsung
 }
