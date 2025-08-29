@@ -67,6 +67,20 @@ async function pageCart(){
   render();
 }
 
+// ====== CART STORAGE (localStorage) ======
+function getCart(){
+  try{
+    return JSON.parse(localStorage.getItem('cart')||'[]');
+  }catch(e){
+    return [];
+  }
+}
+
+function saveCart(items){
+  localStorage.setItem('cart', JSON.stringify(items));
+}
+
+
 // ====== CHECKOUT PAGE ======
 async function pageCheckout(){
   const form = document.getElementById('checkout-form'); 
