@@ -2,26 +2,22 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Parfumeria</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Toko Parfum</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding:20px; }
+    .product { border:1px solid #ccc; padding:10px; margin:10px; display:inline-block; width:200px; text-align:center; }
+    .product img { max-width:100%; height:150px; object-fit:cover; }
+    button { padding:5px 10px; margin-top:10px; cursor:pointer; }
+  </style>
+</head>
+<body onload="pageIndex()">
+
+  <h1>Daftar Produk</h1>
+  <div id="product-list">Loading...</div>
+
+  <p><a href="cart.html">Lihat Cart</a></p>
+
   <script src="js/gsapi.js"></script>
   <script src="js/main.js"></script>
-</head>
-<body onload="loadProducts()">
-  <header>
-    <h1>Parfumeria</h1>
-    <nav>
-      <a href="cart.html">Keranjang</a>
-    </nav>
-  </header>
-
-  <section>
-    <h2>Koleksi Parfum</h2>
-    <div id="product-list" class="grid"></div>
-  </section>
-
-  <footer>
-    <p>© 2025 Parfumeria</p>
-  </footer>
 </body>
 </html>
