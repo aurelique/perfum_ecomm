@@ -1,5 +1,5 @@
 // Google Apps Script API Handler
-// Ganti dengan URL Web App Anda dari Google Apps Script
+// GANTI dengan URL Web App Anda dari Google Apps Script
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5W8BLy2DG1Pqo-20evsNgzxCYd5Od6R3sgeZy1UFMCT-p3lEI/exec';
 
 // Fungsi untuk mengambil data produk dari Google Sheets
@@ -30,6 +30,26 @@ async function addProduct(product) {
         return await response.json();
     } catch (error) {
         console.error('Error adding product:', error);
+        return { success: false };
+    }
+}
+
+// Fungsi untuk membuat pesanan
+async function createOrder(orderData) {
+    try {
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'createOrder',
+                ...orderData
+            })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Error creating order:', error);
         return { success: false };
     }
 }
@@ -85,23 +105,5 @@ async function savePaymentProof(orderId, proofBase64) {
     } catch (error) {
         console.error('Error saving payment proof:', error);
         return { success: false };
-    }
-}
-
-// Fungsi untuk mengirim notifikasi WhatsApp
-async function sendWhatsAppNotification(message) {
-    try {
-        // Menggunakan CallMeBot API
-        const phoneNumber = '6283840556211'; // Ganti dengan nomor admin
-        const apiKey = 'YOUR_CALLMEBOT_API_KEY'; // Ganti dengan API key Anda
-        
-        const response = await fetch(
-            `https://api.callmebot.com/whatsapp.php?phone=${phoneNumber}&text=${encodeURIComponent(message)}&apikey=${apiKey}`
-        );
-        
-        return response.ok;
-    } catch (error) {
-        console.error('Error sending WhatsApp notification:', error);
-        return false;
     }
 }

@@ -1,6 +1,5 @@
 // Variabel global
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5W8BLy2DG1Pqo-20evsNgzxCYd5Od6R3sgeZy1UFMCT-p3lEI/exec'; // Ganti dengan URL Web App Anda
 
 // Fungsi untuk memuat produk
 async function loadProducts() {
@@ -60,46 +59,24 @@ function updateCartCount() {
     cartCount.textContent = totalItems;
 }
 
-// Fungsi untuk memuat item keranjang
+// Fungsi untuk memuat item keranjang (di bagian summary checkout)
 function loadCartItems() {
-    const container = document.getElementById('cart-items');
     const subtotalElement = document.getElementById('subtotal');
     const totalElement = document.getElementById('total');
     
+    if (!subtotalElement || !totalElement) return; // Hanya di halaman checkout
+    
     if (cart.length === 0) {
-        container.innerHTML = '<p class="text-center">Keranjang Anda kosong</p>';
         subtotalElement.textContent = 'Rp 0';
         totalElement.textContent = 'Rp 0';
         return;
     }
     
-    container.innerHTML = '';
     let subtotal = 0;
     
     cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         subtotal += itemTotal;
-        
-        const cartItem = document.createElement('div');
-        cartItem.className = 'cart-item';
-        cartItem.innerHTML = `
-            <div class="cart-item-image">
-                <img src="${item.image}" alt="${item.name}">
-            </div>
-            <div class="cart-item-details">
-                <h3>${item.name}</h3>
-                <div class="cart-item-price">Rp ${item.price.toLocaleString('id-ID')}</div>
-                <div class="quantity-controls">
-                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)">-</button>
-                    <span>${item.quantity}</span>
-                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
-                </div>
-            </div>
-            <div class="remove-item" onclick="removeFromCart('${item.id}')">
-                <i class="fas fa-trash"></i>
-            </div>
-        `;
-        container.appendChild(cartItem);
     });
     
     const total = subtotal + 15000; // Ongkos kirim
@@ -128,14 +105,20 @@ function removeFromCart(id) {
     updateCartCount();
 }
 
-// Fungsi untuk memproses checkout
-async function processCheckout() {
+// Fungsi untuk memproses checkout dengan pembayaran langsung
+async function processCheckoutWithPayment() {
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
     const address = document.getElementById('address').value;
+    const fileInput = document.getElementById('payment-proof');
     
     if (!name || !phone || !address) {
         alert('Harap lengkapi semua informasi pembeli');
+        return;
+    }
+    
+    if (!fileInput.files[0]) {
+        alert('Harap upload bukti pembayaran');
         return;
     }
     
@@ -153,72 +136,51 @@ async function processCheckout() {
     };
     
     try {
-        const response = await createOrder(orderData);
-        if (response.success) {
-            // Simpan orderId untuk pembayaran
-            localStorage.setItem('currentOrderId', response.orderId);
-            localStorage.setItem('orderTotal', total);
+        // Buat pesanan dulu
+        const orderResponse = await createOrder(orderData);
+        if (orderResponse.success) {
+            const orderId = orderResponse.orderId;
             
-            // Kosongkan keranjang
-            cart = [];
-            localStorage.removeItem('cart');
-            
-            // Redirect ke payment page
-            window.location.href = 'payment.html';
+            // Konversi gambar ke base64
+            const reader = new FileReader();
+            reader.onload = async function() {
+                const base64 = reader.result.split(',')[1]; // Hapus prefix image/*
+                
+                // Simpan bukti pembayaran
+                const paymentResponse = await savePaymentProof(orderId, base64);
+                
+                if (paymentResponse.success) {
+                    // Kosongkan keranjang
+                    cart = [];
+                    localStorage.removeItem('cart');
+                    
+                    // Redirect ke WhatsApp admin dengan pesan otomatis
+                    const adminPhone = '6283840556211'; // Ganti dengan nomor admin Anda
+                    const message = `🔔 NOTIFIKASI PEMBAYARAN BARU 🔔\n\nID Pesanan: ${orderId}\nNama: ${name}\nTotal: Rp ${total.toLocaleString('id-ID')}\nStatus: Bukti Pembayaran Diupload\n\nSilakan cek bukti pembayarannya.`;
+                    const encodedMessage = encodeURIComponent(message);
+                    
+                    // Buka WhatsApp dengan pesan
+                    window.open(`https://wa.me/${adminPhone}?text=${encodedMessage}`, '_blank');
+                    
+                    alert('Pesanan berhasil dibuat dan bukti pembayaran telah diupload! Anda akan diarahkan ke WhatsApp untuk mengirim notifikasi ke admin.');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } else {
+                    alert('Gagal mengupload bukti pembayaran. Pesanan tetap dibuat.');
+                    // Kosongkan keranjang
+                    cart = [];
+                    localStorage.removeItem('cart');
+                    window.location.href = 'index.html';
+                }
+            };
+            reader.readAsDataURL(fileInput.files[0]);
         } else {
             alert('Gagal membuat pesanan. Silakan coba lagi.');
         }
     } catch (error) {
-        console.error('Error creating order:', error);
+        console.error('Error processing checkout:', error);
         alert('Terjadi kesalahan. Silakan coba lagi.');
-    }
-}
-
-// Fungsi untuk upload bukti pembayaran
-async function uploadPaymentProof() {
-    const fileInput = document.getElementById('payment-proof');
-    const orderId = localStorage.getItem('currentOrderId');
-    const total = localStorage.getItem('orderTotal');
-    
-    if (!fileInput.files[0]) {
-        alert('Harap pilih file bukti pembayaran');
-        return;
-    }
-    
-    if (!orderId) {
-        alert('ID pesanan tidak ditemukan');
-        return;
-    }
-    
-    try {
-        // Konversi gambar ke base64
-        const reader = new FileReader();
-        reader.onload = async function() {
-            const base64 = reader.result.split(',')[1]; // Hapus prefix image/*
-            
-            // Simpan bukti pembayaran
-            const response = await savePaymentProof(orderId, base64);
-            
-            if (response.success) {
-                // Kirim WhatsApp langsung ke admin
-                const adminPhone = '628123456789'; // Ganti dengan nomor admin
-                const message = `🔔 NOTIFIKASI PEMBAYARAN BARU 🔔\n\nID Pesanan: ${orderId}\nStatus: Bukti Pembayaran Diupload\n\nSilakan cek bukti pembayaran di Google Sheets.`;
-                
-                // Buka WhatsApp dengan pesan
-                window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`, '_blank');
-                
-                alert('Bukti pembayaran berhasil diupload! Anda akan diarahkan ke WhatsApp untuk mengirim notifikasi.');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 3000);
-            } else {
-                alert('Gagal mengupload bukti pembayaran. Silakan coba lagi.');
-            }
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    } catch (error) {
-        console.error('Error uploading payment proof:', error);
-        alert('Terjadi kesalahan saat mengupload bukti pembayaran.');
     }
 }
 
@@ -238,7 +200,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update cart count
     updateCartCount();
     
+    // Load cart items if on checkout page
+    if (document.getElementById('subtotal') && document.getElementById('total')) {
+        loadCartItems();
+    }
+    
     // Toggle menu mobile
     document.querySelector('.menu-toggle').addEventListener('click', toggleMenu);
+    
+    // Form submit listener
+    if (document.getElementById('checkout-form')) {
+        document.getElementById('checkout-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            processCheckoutWithPayment();
+        });
+    }
 });
-
