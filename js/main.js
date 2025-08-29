@@ -148,6 +148,7 @@ function removeFromCart(id) {
 }
 
 // Fungsi untuk memproses checkout dengan pembayaran langsung
+// Fungsi untuk memproses checkout dengan pembayaran langsung
 async function processCheckoutWithPayment() {
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
@@ -178,6 +179,12 @@ async function processCheckoutWithPayment() {
     };
     
     try {
+        // Tampilkan loading
+        const submitBtn = document.querySelector('#checkout-form button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Memproses...';
+        submitBtn.disabled = true;
+        
         // Buat pesanan dulu
         const orderResponse = await createOrder(orderData);
         if (orderResponse.success) {
@@ -186,43 +193,60 @@ async function processCheckoutWithPayment() {
             // Konversi gambar ke base64
             const reader = new FileReader();
             reader.onload = async function() {
-                const base64 = reader.result.split(',')[1]; // Hapus prefix image/*
-                
-                // Simpan bukti pembayaran
-                const paymentResponse = await savePaymentProof(orderId, base64);
-                
-                if (paymentResponse.success) {
-                    // Kosongkan keranjang
-                    cart = [];
-                    localStorage.removeItem('cart');
+                try {
+                    const base64 = reader.result.split(',')[1]; // Hapus prefix image/*
                     
-                    // Redirect ke WhatsApp admin dengan pesan otomatis
-                    const adminPhone = '628123456789'; // Ganti dengan nomor admin Anda
-                    const message = `🔔 NOTIFIKASI PEMBAYARAN BARU 🔔\n\nID Pesanan: ${orderId}\nNama: ${name}\nTotal: Rp ${total.toLocaleString('id-ID')}\nStatus: Bukti Pembayaran Diupload\n\nSilakan cek bukti pembayaran di Google Sheets.`;
-                    const encodedMessage = encodeURIComponent(message);
+                    // Simpan bukti pembayaran
+                    const paymentResponse = await savePaymentProof(orderId, base64);
                     
-                    // Buka WhatsApp dengan pesan
-                    window.open(`https://wa.me/${adminPhone}?text=${encodedMessage}`, '_blank');
-                    
-                    alert('Pesanan berhasil dibuat dan bukti pembayaran telah diupload! Anda akan diarahkan ke WhatsApp untuk mengirim notifikasi ke admin.');
-                    setTimeout(() => {
+                    if (paymentResponse.success) {
+                        // Kosongkan keranjang
+                        cart = [];
+                        localStorage.removeItem('cart');
+                        
+                        // Redirect ke WhatsApp admin dengan pesan otomatis
+                        const adminPhone = '628123456789'; // Ganti dengan nomor admin Anda
+                        const message = `🔔 NOTIFIKASI PEMBAYARAN BARU 🔔\n\nID Pesanan: ${orderId}\nNama: ${name}\nTotal: Rp ${total.toLocaleString('id-ID')}\nStatus: Bukti Pembayaran Diupload\n\nSilakan cek bukti pembayaran di Google Sheets.`;
+                        const encodedMessage = encodeURIComponent(message);
+                        
+                        // Buka WhatsApp dengan pesan
+                        window.open(`https://wa.me/${adminPhone}?text=${encodedMessage}`, '_blank');
+                        
+                        alert('Pesanan berhasil dibuat dan bukti pembayaran telah diupload! Anda akan diarahkan ke WhatsApp untuk mengirim notifikasi ke admin.');
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 3000);
+                    } else {
+                        const errorMsg = paymentResponse.error || 'Unknown error';
+                        alert('Gagal mengupload bukti pembayaran: ' + errorMsg);
+                        // Kosongkan keranjang
+                        cart = [];
+                        localStorage.removeItem('cart');
                         window.location.href = 'index.html';
-                    }, 3000);
-                } else {
-                    alert('Gagal mengupload bukti pembayaran. Pesanan tetap dibuat.');
-                    // Kosongkan keranjang
-                    cart = [];
-                    localStorage.removeItem('cart');
-                    window.location.href = 'index.html';
+                    }
+                } catch (error) {
+                    console.error('Error saving payment proof:', error);
+                    alert('Terjadi kesalahan saat menyimpan bukti pembayaran: ' + error.message);
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
                 }
             };
             reader.readAsDataURL(fileInput.files[0]);
         } else {
-            alert('Gagal membuat pesanan: ' + (orderResponse.error || 'Unknown error'));
+            const errorMsg = orderResponse.error || 'Unknown error';
+            alert('Gagal membuat pesanan: ' + errorMsg);
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         }
     } catch (error) {
         console.error('Error processing checkout:', error);
-        alert('Terjadi kesalahan. Silakan coba lagi.');
+        alert('Terjadi kesalahan: ' + error.message);
+        const submitBtn = document.querySelector('#checkout-form button[type="submit"]');
+        if (submitBtn) {
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = originalText.replace('Memproses...', '');
+            submitBtn.disabled = false;
+        }
     }
 }
 
