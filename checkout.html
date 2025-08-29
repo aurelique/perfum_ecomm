@@ -1,25 +1,50 @@
-<!doctype html><html lang="id"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Checkout</title><link rel="stylesheet" href="css/style.css"/>
-<script src="js/gsapi.js" defer></script><script src="js/main.js" defer></script>
-</head><body>
-<div class="container">
-  <h2>Checkout</h2>
-  <div id="bca-info" class="badge"></div>
-  <form id="checkout-form" class="grid">
-    <input name="name" placeholder="Nama lengkap" required/>
-    <input name="phone" placeholder="No. WhatsApp (62...)" required/>
-    <input name="email" placeholder="Email" type="email"/>
-    <textarea name="address" placeholder="Alamat lengkap" required></textarea>
-    <div class="row"><input name="city" placeholder="Kota"/><input name="postal_code" placeholder="Kode Pos"/></div>
-    <button class="btn" type="submit">Buat Pesanan</button>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkout</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Checkout</h1>
+
+  <!-- Form Customer -->
+  <form id="checkout-form" class="card">
+    <label>Nama Lengkap</label>
+    <input type="text" name="name" required>
+
+    <label>No. WhatsApp</label>
+    <input type="text" name="phone" required>
+
+    <label>Email</label>
+    <input type="email" name="email" required>
+
+    <label>Alamat</label>
+    <textarea name="address" required></textarea>
+
+    <label>Kota</label>
+    <input type="text" name="city" required>
+
+    <label>Kode Pos</label>
+    <input type="text" name="postal_code" required>
+
+    <button type="submit">Buat Pesanan</button>
   </form>
 
-  <div id="after-order" style="display:none;margin-top:16px">
-    <p>Upload bukti transfer (jpg/png):</p>
-    <input type="file" id="proof-file" accept="image/*"/>
-    <button class="btn" id="btn-upload-proof">Upload Bukti & Kirim WA</button>
+  <!-- Setelah Order Dibuat -->
+  <div id="after-order" style="display:none;" class="card">
+    <h3>Instruksi Pembayaran</h3>
+    <p id="order-msg"></p>
+    <p id="bca-info" style="font-weight:bold;color:darkred;"></p>
+
+    <hr>
+
+    <h4>Upload Bukti Transfer</h4>
+    <input type="file" id="proof-file" accept="image/*">
+    <button id="btn-upload-proof">Kirim Bukti & Chat Admin</button>
   </div>
-  <p id="order-msg"></p>
-</div>
-</body></html>
+
+  <script src="js/gsapi.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

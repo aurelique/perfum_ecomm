@@ -1,14 +1,25 @@
-<!doctype html><html lang="id"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Cart</title><link rel="stylesheet" href="css/style.css"/>
-<script src="js/gsapi.js" defer></script><script src="js/main.js" defer></script>
-</head><body>
-<div class="container">
-  <h2>Keranjang</h2>
-  <div id="cart-list" class="grid"></div>
-  <div class="row" style="justify-content:space-between">
-    <strong>Total: <span id="cart-total">IDR 0</span></strong>
-    <a class="btn" href="checkout.html">Checkout</a>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Keranjang Belanja</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Keranjang Belanja</h1>
+
+  <!-- List Cart -->
+  <div id="cart-list"></div>
+
+  <!-- Total -->
+  <div class="card">
+    <h3>Total: <span id="cart-total">Rp0</span></h3>
+    <a href="checkout.html">
+      <button>Lanjut ke Checkout</button>
+    </a>
   </div>
-</div>
-</body></html>
+
+  <script src="js/gsapi.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
