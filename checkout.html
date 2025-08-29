@@ -4,37 +4,34 @@
   <meta charset="UTF-8">
   <title>Checkout - Parfumeria</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/gsapi.js"></script>
+  <script src="js/main.js"></script>
 </head>
 <body>
   <header>
     <h1>Checkout</h1>
     <nav>
-      <a href="index.html">Home</a> | 
-      <a href="cart.html">Cart</a>
+      <a href="index.html">Home</a>
+      <a href="cart.html">Keranjang</a>
     </nav>
   </header>
 
   <section>
-    <h2>Data Pemesan</h2>
-    <form id="checkout-form">
+    <form onsubmit="event.preventDefault(); handleCheckout();">
       <label>Nama Lengkap</label>
-      <input type="text" name="name" required>
+      <input type="text" id="cust-name" required>
 
-      <label>No. WhatsApp</label>
-      <input type="text" name="phone" required>
+      <label>No. HP</label>
+      <input type="text" id="cust-phone" required>
 
       <label>Alamat</label>
-      <textarea name="address" required></textarea>
+      <textarea id="cust-address" required></textarea>
 
-      <button type="submit" class="btn">Buat Pesanan</button>
+      <label>Upload Bukti Transfer</label>
+      <input type="file" id="payment-proof" accept="image/*" required>
+
+      <button type="submit">Kirim Pesanan</button>
     </form>
   </section>
-
-  <footer>
-    <p>&copy; 2025 Parfumeria</p>
-  </footer>
-
-  <script src="js/gsapi.js"></script>
-  <script src="js/main.js"></script>
 </body>
 </html>

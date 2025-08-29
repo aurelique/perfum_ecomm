@@ -2,30 +2,23 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Keranjang Belanja - Parfumeria</title>
+  <title>Keranjang - Parfumeria</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/gsapi.js"></script>
+  <script src="js/main.js"></script>
 </head>
-<body>
+<body onload="renderCart()">
   <header>
-    <h1>Keranjang</h1>
+    <h1>Keranjang Belanja</h1>
     <nav>
-      <a href="index.html">Home</a> | 
+      <a href="index.html">Kembali</a>
       <a href="checkout.html">Checkout</a>
     </nav>
   </header>
 
   <section>
-    <h2>Isi Keranjang</h2>
-    <div id="cart-items"></div>
-    <h3>Total: <span id="cart-total">Rp 0</span></h3>
-    <a href="checkout.html" class="btn">Lanjut Checkout</a>
+    <div id="cart-list"></div>
+    <h3 id="cart-total">Total: Rp 0</h3>
   </section>
-
-  <footer>
-    <p>&copy; 2025 Parfumeria</p>
-  </footer>
-
-  <script src="js/gsapi.js"></script>
-  <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,134 +1,140 @@
-// =========================
-// MAIN.JS FRONTEND
-// =========================
+// ============================
+// MAIN.JS
+// ============================
 
-// Simpan keranjang di localStorage
+// Load produk dari Google Sheets
+async function loadProducts() {
+  try {
+    const products = await getProducts(); // dari gsapi.js
+    const container = document.getElementById("product-list");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    products.forEach(p => {
+      if (!p.active) return;
+      container.innerHTML += `
+        <div class="product-card">
+          <img src="${p.image_url}" alt="${p.name}" />
+          <h3>${p.name}</h3>
+          <p>${p.description}</p>
+          <strong>Rp ${Number(p.price_idr).toLocaleString("id-ID")}</strong>
+          <button onclick="addToCart('${p.id}','${p.name}',${p.price_idr})">Tambah ke Keranjang</button>
+        </div>
+      `;
+    });
+  } catch (err) {
+    console.error("Gagal load produk", err);
+    document.getElementById("product-list").innerHTML = "<p>Gagal load produk.</p>";
+  }
+}
+
+// ============================
+// CART (pakai sessionStorage)
+// ============================
+
 function getCart() {
-  return JSON.parse(localStorage.getItem("cart") || "[]");
+  return JSON.parse(sessionStorage.getItem("cart") || "[]");
 }
+
 function saveCart(cart) {
-  localStorage.setItem("cart", JSON.stringify(cart));
+  sessionStorage.setItem("cart", JSON.stringify(cart));
 }
-function addToCart(product) {
+
+function addToCart(id, name, price) {
   let cart = getCart();
-  let existing = cart.find(item => item.id === product.id);
+  let existing = cart.find(i => i.id === id);
   if (existing) {
     existing.qty += 1;
   } else {
-    cart.push({ ...product, qty: 1 });
+    cart.push({ id, name, price, qty: 1 });
   }
   saveCart(cart);
-  alert("Ditambahkan ke keranjang!");
+  alert("Produk ditambahkan ke keranjang!");
 }
 
-// Render produk di index.html
-async function pageIndex() {
-  const productList = document.getElementById("product-list");
-  if (!productList) return;
+// Render cart di cart.html
+function renderCart() {
+  const cart = getCart();
+  const container = document.getElementById("cart-list");
+  const totalBox = document.getElementById("cart-total");
 
-  try {
-    let products = await getProducts(); // dari gsapi.js
-    console.log("Produk dari API:", products);
+  if (!container) return;
 
-    if (!Array.isArray(products)) {
-      productList.innerHTML = "<p>Gagal load produk (format salah).</p>";
-      return;
-    }
-
-    if (products.length === 0) {
-      productList.innerHTML = "<p>Belum ada produk tersedia.</p>";
-      return;
-    }
-
-    productList.innerHTML = products.map(p => `
-      <div class="product-card">
-        <img src="${p.image_url}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>${p.description}</p>
-        <p><strong>Rp ${Number(p.price_idr).toLocaleString("id-ID")}</strong></p>
-        <button onclick='addToCart(${JSON.stringify(p)})'>Tambah ke Cart</button>
-      </div>
-    `).join("");
-
-  } catch (err) {
-    console.error("Error load produk:", err);
-    productList.innerHTML = "<p>Error mengambil produk.</p>";
-  }
-}
-
-// Render keranjang di cart.html
-function pageCart() {
-  const cartItems = document.getElementById("cart-items");
-  if (!cartItems) return;
-
-  let cart = getCart();
+  container.innerHTML = "";
   let total = 0;
 
-  if (cart.length === 0) {
-    cartItems.innerHTML = "<p>Keranjang kosong.</p>";
-    document.getElementById("cart-total").innerText = "Rp 0";
+  cart.forEach((item, idx) => {
+    total += item.price * item.qty;
+    container.innerHTML += `
+      <div class="cart-item">
+        <span>${item.name}</span>
+        <span>Rp ${item.price.toLocaleString("id-ID")}</span>
+        <span>Qty: ${item.qty}</span>
+        <button onclick="removeCartItem(${idx})">Hapus</button>
+      </div>
+    `;
+  });
+
+  totalBox.innerText = "Total: Rp " + total.toLocaleString("id-ID");
+}
+
+function removeCartItem(index) {
+  let cart = getCart();
+  cart.splice(index, 1);
+  saveCart(cart);
+  renderCart();
+}
+
+// ============================
+// CHECKOUT
+// ============================
+
+async function handleCheckout() {
+  const name = document.getElementById("cust-name").value;
+  const phone = document.getElementById("cust-phone").value;
+  const address = document.getElementById("cust-address").value;
+  const proofFile = document.getElementById("payment-proof").files[0];
+
+  if (!name || !phone || !address || !proofFile) {
+    alert("Lengkapi semua field dan upload bukti transfer!");
     return;
   }
 
-  cartItems.innerHTML = cart.map(item => {
-    let sub = item.qty * Number(item.price_idr);
-    total += sub;
-    return `
-      <div class="cart-row">
-        <span>${item.name} x ${item.qty}</span>
-        <span>Rp ${sub.toLocaleString("id-ID")}</span>
-      </div>
-    `;
-  }).join("");
+  const cart = getCart();
+  if (cart.length === 0) {
+    alert("Keranjang kosong!");
+    return;
+  }
 
-  document.getElementById("cart-total").innerText = 
-    "Rp " + total.toLocaleString("id-ID");
-}
+  // Convert bukti ke base64
+  const reader = new FileReader();
+  reader.onloadend = async function() {
+    const proofBase64 = reader.result.split(",")[1];
 
-// Proses checkout di checkout.html
-function pageCheckout() {
-  const form = document.getElementById("checkout-form");
-  if (!form) return;
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    let cart = getCart();
-    if (cart.length === 0) {
-      alert("Keranjang masih kosong!");
-      return;
-    }
-
-    let data = {
-      name: form.name.value,
-      phone: form.phone.value,
-      address: form.address.value,
-      cart: cart
+    const orderData = {
+      customer_name: name,
+      customer_phone: phone,
+      customer_address: address,
+      cart: cart,
+      total: cart.reduce((s, i) => s + i.price * i.qty, 0)
     };
 
     try {
-      let res = await addOrder(data);
-      console.log("Order berhasil:", res);
+      const res = await addOrder(orderData);
+      await uploadProof(res.orderId, proofBase64);
 
-      // reset keranjang
-      saveCart([]);
-      alert("Pesanan berhasil dibuat!");
+      // Clear cart
+      sessionStorage.removeItem("cart");
 
-      // redirect ke WA admin
-      let msg = `Halo admin, saya pesan:\n\n${cart.map(i => `- ${i.name} x ${i.qty}`).join("\n")}\n\nNama: ${data.name}\nTelp: ${data.phone}\nAlamat: ${data.address}`;
-      window.location.href = `https://wa.me/62XXXXXXXXXX?text=${encodeURIComponent(msg)}`;
+      // Redirect ke WhatsApp admin
+      const adminPhone = "6283840556211"; // ganti nomor admin
+      const text = `Halo admin, saya ${name} sudah transfer untuk order #${res.orderId}. Mohon dicek ya.`;
+      window.location.href = `https://wa.me/${adminPhone}?text=${encodeURIComponent(text)}`;
     } catch (err) {
-      console.error("Checkout error:", err);
-      alert("Gagal membuat pesanan.");
+      console.error(err);
+      alert("Checkout gagal!");
     }
-  });
+  };
+  reader.readAsDataURL(proofFile);
 }
-
-// =========================
-// AUTO INIT PAGE
-// =========================
-document.addEventListener("DOMContentLoaded", () => {
-  pageIndex();
-  pageCart();
-  pageCheckout();
-});

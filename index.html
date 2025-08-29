@@ -4,32 +4,24 @@
   <meta charset="UTF-8">
   <title>Parfumeria</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/gsapi.js"></script>
+  <script src="js/main.js"></script>
 </head>
-<body>
+<body onload="loadProducts()">
   <header>
     <h1>Parfumeria</h1>
     <nav>
-      <a href="cart.html">Cart</a> | 
-      <a href="checkout.html">Checkout</a>
+      <a href="cart.html">Keranjang</a>
     </nav>
   </header>
 
-  <section class="hero">
-    <h2>Elevate Your Scent</h2>
-    <p>Parfum elegan, UI/UX modern, animasi halus.</p>
-    <a href="#products" class="btn">Belanja Sekarang</a>
-  </section>
-
-  <section id="products">
+  <section>
     <h2>Koleksi Parfum</h2>
     <div id="product-list" class="grid"></div>
   </section>
 
   <footer>
-    <p>&copy; 2025 Parfumeria</p>
+    <p>© 2025 Parfumeria</p>
   </footer>
-
-  <script src="js/gsapi.js"></script>
-  <script src="js/main.js"></script>
 </body>
 </html>
