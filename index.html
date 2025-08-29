@@ -1,38 +1,60 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Parfumeria — E-Commerce Parfum</title>
-  <link rel="stylesheet" href="css/style.css"/>
-  <!-- GSAP (opsional animasi mulus) -->
-  <script src="https://unpkg.com/gsap@3/dist/gsap.min.js" defer></script>
-  <script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js" defer></script>
-  <script src="js/gsapi.js" defer></script>
-  <script src="js/main.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parfumeria - E-commerce Parfum</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- AOS Animations -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
 </head>
 <body>
-  <header class="header">
-    <div class="container row">
-      <strong>Parfumeria</strong>
-      <nav class="row" style="margin-left:auto;gap:16px">
+  <!-- HEADER -->
+  <header>
+    <nav>
+      <h2 class="logo">Parfumeria</h2>
+      <div class="nav-links">
         <a href="cart.html">Cart</a>
         <a href="checkout.html">Checkout</a>
-      </nav>
-    </div>
+      </div>
+    </nav>
   </header>
 
-  <section class="container" id="hero">
-    <h1 data-reveal>Elevate Your Scent</h1>
-    <p class="muted" data-reveal>Parfum elegan, UI/UX modern, animasi halus.</p>
-    <a class="btn" href="#shop" data-reveal>Belanja Sekarang</a>
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <h1 data-aos="fade-up">Elevate Your Scent</h1>
+    <p data-aos="fade-up" data-aos-delay="200">
+      Parfum elegan, UI/UX modern, animasi halus.
+    </p>
+    <a href="#products" class="btn" data-aos="fade-up" data-aos-delay="400">
+      Belanja Sekarang
+    </a>
   </section>
 
-  <section class="container" id="shop">
-    <h2 data-reveal>Koleksi Parfum</h2>
-    <div id="product-grid" class="grid grid-3"></div>
+  <!-- PRODUCT GRID -->
+  <section id="products" class="products-section">
+    <h2 class="section-title" data-aos="fade-right">Koleksi Parfum</h2>
+    <div id="product-list" class="products"></div>
   </section>
 
-  <footer class="container" style="opacity:.7">© 2025 Parfumeria</footer>
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 Parfumeria</p>
+  </footer>
+
+  <!-- SCRIPT -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 800,
+      once: true
+    });
+  </script>
+  <script src="js/gsapi.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

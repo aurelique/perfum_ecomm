@@ -1,45 +1,114 @@
-body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  max-width: 600px;
-  margin: auto;
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-h1, h3, h4 {
+body {
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+  background: #fafafa;
+  color: #333;
+  padding: 0;
+  margin: 0;
+}
+
+header, footer {
+  background: #fff;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header a {
+  margin-right: 15px;
+  text-decoration: none;
+  font-weight: 500;
   color: #333;
 }
 
-.card {
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  background: #fafafa;
+.hero {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: linear-gradient(to right, #f9f9f9, #f1f1f1);
 }
 
-label {
-  display: block;
-  margin-top: 10px;
-  font-weight: bold;
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
 }
 
-input, textarea, button {
+.hero p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.hero a {
+  display: inline-block;
+  background: #111;
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.hero a:hover {
+  background: #333;
+}
+
+/* Produk Grid */
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.product {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  transition: 0.3s;
+  text-align: center;
+  padding: 1rem;
+}
+
+.product:hover {
+  transform: translateY(-5px);
+}
+
+.product img {
   width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  height: 200px;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+
+.product h3 {
+  margin-bottom: 0.5rem;
 }
 
 button {
-  background: #0d6efd;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
+  padding: 0.5rem 1rem;
   border: none;
+  background: #111;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
 button:hover {
-  background: #0b5ed7;
+  background: #333;
+}
+
+footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #666;
 }
