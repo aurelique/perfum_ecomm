@@ -85,28 +85,28 @@
     <script src="../js/gsapi.js"></script>
     <script src="../js/admin.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            loadOrders();
-        });
-        
-        document.getElementById('status-filter').addEventListener('change', loadOrders);
-        document.getElementById('sort-order').addEventListener('change', loadOrders);
-        document.getElementById('logout-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
-        
-        // Modal functionality
-        document.querySelector('.close').addEventListener('click', function() {
-            document.getElementById('proof-modal').style.display = 'none';
-        });
-        
-        window.addEventListener('click', function(event) {
-            const modal = document.getElementById('proof-modal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        });
-    </script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadOrders();
+    });
+    
+    document.getElementById('status-filter').addEventListener('change', loadOrders);
+    document.getElementById('sort-order').addEventListener('change', loadOrders);
+    document.getElementById('logout-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        logout();
+    });
+    
+    // Modal functionality
+    document.querySelector('.close').addEventListener('click', function() {
+        document.getElementById('proof-modal').style.display = 'none';
+    });
+    
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('proof-modal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+</script>
 </body>
 </html>
