@@ -1,7 +1,7 @@
 // ================================
 // KONFIGURASI SUPABASE
 // ================================
-const SUPABASE_URL = "https://tmgkanevoumepdtezzit.supabase.co/"; // 🔑 ganti
+const SUPABASE_URL = "https://tmgkanevoumepdtezzit.supabase.co"; // 🔑 ganti
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtZ2thbmV2b3VtZXBkdGV6eml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0ODYxNzYsImV4cCI6MjA3MjA2MjE3Nn0.PhNEweJ6CPB8dOaS1gC4WFSGK9r7OlPuWgTcEjxxt78"; // 🔑 ganti
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
