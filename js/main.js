@@ -1,123 +1,156 @@
-// ===== Utils =====
-// ====== CART STORAGE ======
-function getCart(){
-  try { return JSON.parse(localStorage.getItem('cart')||'[]'); }
-  catch(e){ return []; }
-}
-function saveCart(items){
-  localStorage.setItem('cart', JSON.stringify(items));
-}
-function fmtIDR(x){
-  return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR'}).format(x||0);
-}
+// ==============================
+// CART (in-memory, tanpa localStorage)
+// ==============================
+let cart = [];
 
-// ===== Index (Product Grid) =====
-async function pageIndex(){
-  const grid = document.getElementById("product-grid"); if(!grid) return;
-  const products = await getProducts();
-  const items = getCart();
-
-  function add(pid){
-    const f = items.find(x=>x.product_id===pid);
-    if(f) f.qty+=1; else items.push({product_id:pid, qty:1});
-    saveCart(items);
-    alert("Ditambahkan ke keranjang");
+// Tambah produk ke cart
+function addToCart(product) {
+  const existing = cart.find(item => item.id === product.id);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ ...product, qty: 1 });
   }
-
-  grid.innerHTML = products.map(p=>`
-    <div class="card">
-      <img src="${p.image_url}" alt="${p.name}" style="width:100%;height:180px;object-fit:cover"/>
-      <h3>${p.name}</h3>
-      <p>${p.description||""}</p>
-      <div class="row" style="justify-content:space-between">
-        <span>${fmtIDR(p.price_idr)}</span>
-        <button data-id="${p.id}">Add</button>
-      </div>
-    </div>
-  `).join("");
-
-  grid.querySelectorAll("button[data-id]").forEach(b=>
-    b.addEventListener("click", ()=> add(b.dataset.id)));
+  alert(`${product.name} ditambahkan ke keranjang!`);
 }
 
-// ===== Cart =====
-async function pageCart(){
-  const list = document.getElementById("cart-list"); if(!list) return;
-  const totalEl = document.getElementById("cart-total");
-  const items = getCart();
-  const products = await getProducts(); const map={}; products.forEach(p=>map[p.id]=p);
+// Ambil cart (supaya bisa dipakai di cart.html & checkout.html)
+function getCart() {
+  return cart;
+}
 
-  function render(){
-    let total=0;
-    list.innerHTML = items.map(it=>{
-      const p = map[it.product_id]; if(!p) return "";
-      const sub = (p.price_idr||0)*(it.qty||1); total+=sub;
-      return `<div class="row card">
-        <div>${p.name} × <input type="number" min="1" value="${it.qty}" data-id="${it.product_id}" style="width:60px"/></div>
-        <strong>${fmtIDR(sub)}</strong>
-      </div>`;
-    }).join("");
-    totalEl.textContent = fmtIDR(total);
-    list.querySelectorAll("input").forEach(inp=>{
-      inp.addEventListener("change", ()=>{
-        const x = items.find(i=>i.product_id===inp.dataset.id);
-        x.qty = Math.max(1, parseInt(inp.value||"1",10));
-        saveCart(items); render();
-      });
+// ==============================
+// RENDER PRODUK DI INDEX
+// ==============================
+async function pageIndex() {
+  try {
+    const products = await getProducts();
+
+    const container = document.getElementById("product-list");
+    container.innerHTML = "";
+
+    if (!Array.isArray(products) || products.length === 0) {
+      container.innerHTML = "<p>Tidak ada produk tersedia.</p>";
+      return;
+    }
+
+    products.forEach(p => {
+      // hanya tampilkan produk aktif
+      if (p.active && (p.active.toString().toLowerCase() === "true" || p.active === "1")) {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.setAttribute("data-aos", "fade-up");
+
+        card.innerHTML = `
+          <img src="${p.image_url}" alt="${p.name}" class="product-img" />
+          <h3>${p.name}</h3>
+          <p class="price">Rp ${Number(p.price_idr).toLocaleString("id-ID")}</p>
+          <p class="desc">${p.description}</p>
+          <button class="btn-add">Tambah ke Keranjang</button>
+        `;
+
+        // event tombol add to cart
+        card.querySelector(".btn-add").addEventListener("click", () => addToCart(p));
+
+        container.appendChild(card);
+      }
     });
+  } catch (err) {
+    console.error("Error load produk:", err);
+    document.getElementById("product-list").innerHTML = "<p>Gagal load produk.</p>";
   }
-  render();
 }
 
-// ===== Checkout =====
-async function pageCheckout(){
-  const form = document.getElementById("checkout-form"); if(!form) return;
-  const st = await getSettings();
-  document.getElementById("bca-info").textContent = "Transfer BCA: " + st.bca_account_number;
+// ==============================
+// HALAMAN CART
+// ==============================
+function pageCart() {
+  const container = document.getElementById("cart-items");
+  const totalEl = document.getElementById("cart-total");
+  container.innerHTML = "";
 
-  let lastOrder=null;
+  if (cart.length === 0) {
+    container.innerHTML = "<p>Keranjang kosong.</p>";
+    totalEl.innerText = "Rp 0";
+    return;
+  }
 
-  form.addEventListener("submit", async (e)=>{
+  let total = 0;
+  cart.forEach(item => {
+    total += item.qty * item.price_idr;
+
+    const row = document.createElement("div");
+    row.className = "cart-row";
+    row.innerHTML = `
+      <span>${item.name}</span>
+      <span>${item.qty} x Rp ${Number(item.price_idr).toLocaleString("id-ID")}</span>
+    `;
+    container.appendChild(row);
+  });
+
+  totalEl.innerText = "Rp " + total.toLocaleString("id-ID");
+}
+
+// ==============================
+// HALAMAN CHECKOUT
+// ==============================
+function pageCheckout() {
+  const form = document.getElementById("checkout-form");
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const items = getCart(); if(items.length===0){ alert("Keranjang kosong"); return; }
-    const fd = new FormData(form);
-    const customer={
-      name:fd.get("name"), phone:fd.get("phone"),
-      email:fd.get("email"), address:fd.get("address"),
-      city:fd.get("city"), postal_code:fd.get("postal_code")
-    };
-    const res = await addOrder({customer, items, payment_proof_base64:null});
-    lastOrder=res;
-    document.getElementById("order-msg").textContent = `Pesanan ${res.order_id} • Total ${fmtIDR(res.total_idr)}. Transfer ke ${st.bca_account_number}.`;
-    document.getElementById("after-order").style.display="block";
-  });
 
-  document.getElementById("btn-upload-proof").addEventListener("click", async ()=>{
-    if(!lastOrder){ alert("Buat pesanan dulu"); return; }
-    const file = document.getElementById("proof-file").files[0];
-    if(!file){ alert("Pilih bukti"); return; }
-    const reader = new FileReader();
-    reader.onload= async ()=>{
-      const base64=reader.result.split(",")[1];
-      await addOrder({ // simpan dummy dengan proof
-        customer:{name:"(proof only)",phone:""},
-        items:[{product_id:"__proof__",qty:0,ref:lastOrder.order_id}],
-        payment_proof_base64:base64
-      });
+    if (cart.length === 0) {
+      alert("Keranjang masih kosong!");
+      return;
+    }
 
-      saveCart([]);
-      const txt=`Halo Admin, saya sudah transfer.
-Nama: ${form.querySelector("[name=name]").value}
-Order ID: ${lastOrder.order_id}
-Total: ${fmtIDR(lastOrder.total_idr)}
-WA: ${form.querySelector("[name=phone]").value}`;
-      location.href=`https://wa.me/${st.admin_whatsapp_number}?text=${encodeURIComponent(txt)}`;
+    const customerName = form.querySelector("[name='name']").value;
+    const customerPhone = form.querySelector("[name='phone']").value;
+    const customerAddress = form.querySelector("[name='address']").value;
+
+    const orderData = {
+      name: customerName,
+      phone: customerPhone,
+      address: customerAddress,
+      cart: cart,
+      total: cart.reduce((sum, item) => sum + (item.qty * item.price_idr), 0),
+      status: "Pending"
     };
-    reader.readAsDataURL(file);
+
+    try {
+      const res = await addOrder(orderData);
+      alert("Pesanan berhasil dibuat! Silakan transfer ke rekening BCA 1234567890 a/n Parfumeria");
+
+      // Redirect ke WhatsApp admin dengan pesan otomatis
+      const waText = encodeURIComponent(
+        `Halo Admin, saya sudah checkout parfum.\n\nNama: ${customerName}\nTotal: Rp ${orderData.total.toLocaleString("id-ID")}\nMohon konfirmasi.`
+      );
+      window.location.href = `https://wa.me/6281234567890?text=${waText}`;
+    } catch (err) {
+      console.error("Error checkout:", err);
+      alert("Checkout gagal. Coba lagi!");
+    }
   });
 }
 
-// ===== Boot =====
-document.addEventListener("DOMContentLoaded", ()=>{
-  pageIndex(); pageCart(); pageCheckout();
+// ==============================
+// DETEKSI HALAMAN & JALANKAN
+// ==============================
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.body.contains(document.getElementById("product-list"))) {
+    pageIndex();
+  }
+  if (document.body.contains(document.getElementById("cart-items"))) {
+    pageCart();
+  }
+  if (document.body.contains(document.getElementById("checkout-form"))) {
+    pageCheckout();
+  }
 });
+
+// ==============================
+// EXPORT GLOBAL
+// ==============================
+window.getCart = getCart;
+window.addToCart = addToCart;
