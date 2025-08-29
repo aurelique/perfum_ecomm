@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Pesanan - LuxeFragrance</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-dashboard">
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+        <div class="admin-logo">
+            <h2>Luxe<span>Fragrance</span></h2>
+        </div>
+        <ul class="admin-menu">
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="orders.html" class="active"><i class="fas fa-shopping-cart"></i> Pesanan</a></li>
+            <li><a href="#"><i class="fas fa-box"></i> Produk</a></li>
+            <li><a href="#"><i class="fas fa-chart-bar"></i> Statistik</a></li>
+            <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+        <div class="admin-header">
+            <h1>Manajemen Pesanan</h1>
+        </div>
+
+        <div class="admin-content">
+            <div class="admin-controls">
+                <div class="filter-controls">
+                    <select id="status-filter">
+                        <option value="">Semua Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Proof Uploaded">Bukti Diupload</option>
+                        <option value="Paid">Dibayar</option>
+                    </select>
+                    <select id="sort-order">
+                        <option value="newest">Terbaru</option>
+                        <option value="oldest">Terlama</option>
+                        <option value="amount-desc">Jumlah (Tertinggi)</option>
+                        <option value="amount-asc">Jumlah (Terendah)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="orders-table-container">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>ID Pesanan</th>
+                            <th>Nama Pelanggan</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        <!-- Orders will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Proof Modal -->
+    <div class="modal" id="proof-modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Bukti Pembayaran</h2>
+            <div class="proof-container">
+                <img id="proof-image" src="" alt="Bukti Pembayaran">
+            </div>
+            <div class="proof-actions">
+                <button class="btn btn-success" id="confirm-payment">Konfirmasi Pembayaran</button>
+                <button class="btn btn-secondary" id="reject-payment">Tolak Pembayaran</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/gsapi.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrders();
+        });
+        
+        document.getElementById('status-filter').addEventListener('change', loadOrders);
+        document.getElementById('sort-order').addEventListener('change', loadOrders);
+        document.getElementById('logout-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+        
+        // Modal functionality
+        document.querySelector('.close').addEventListener('click', function() {
+            document.getElementById('proof-modal').style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('proof-modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
