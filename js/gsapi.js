@@ -1,6 +1,6 @@
 // Google Apps Script API Handler
 // Ganti dengan URL Web App Anda dari Google Apps Script
-const GAS_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5W8BLy2DG1Pqo-20evsNgzxCYd5Od6R3sgeZy1UFMCT-p3lEI/exec';
 
 // Fungsi untuk mengambil data produk dari Google Sheets
 async function fetchProducts() {
@@ -92,7 +92,7 @@ async function savePaymentProof(orderId, proofBase64) {
 async function sendWhatsAppNotification(message) {
     try {
         // Menggunakan CallMeBot API
-        const phoneNumber = '628123456789'; // Ganti dengan nomor admin
+        const phoneNumber = '6283840556211'; // Ganti dengan nomor admin
         const apiKey = 'YOUR_CALLMEBOT_API_KEY'; // Ganti dengan API key Anda
         
         const response = await fetch(
