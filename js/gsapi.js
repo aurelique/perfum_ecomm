@@ -1,44 +1,78 @@
-// ====== KONFIG ======
-const API_BASE = 'https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1OpMv4SjO9XVJsTzSO1w7km2XMCv4RYjxdKHMJYNRU9EclY_fH/exec'; // contoh: https://script.google.com/macros/s/.../exec
-const fmtIDR = v => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR'}).format(v||0);
+// Ganti dengan URL Web App dari Google Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1OpMv4SjO9XVJsTzSO1w7km2XMCv4RYjxdKHMJYNRU9EclY_fH/exec";
 
-// ====== API HELPERS ======
-async function apiGet(action, params={}){
-  const url = new URL(API_BASE);
-  url.searchParams.set('action', action);
-  Object.entries(params).forEach(([k,v])=> url.searchParams.set(k,v));
-  const r = await fetch(url.toString(), {method:'GET'});
-  const j = await r.json(); if(!j.ok) throw new Error(j.error||'API error'); return j.data;
-}
-async function apiPost(action, body={}){
-  const r = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, ...body})});
-  const j = await r.json(); if(!j.ok) throw new Error(j.error||'API error'); return j.data;
-}
+/**
+ * Fungsi GET (baca data dari Apps Script)
+ * @param {string} action - nama aksi (ex: getProducts)
+ * @param {object} params - parameter tambahan (optional)
+ */
+async function apiGet(action, params = {}) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.append("action", action);
 
-// ====== COOKIE CART (tanpa localStorage) ======
-function setCookie(k,v,days=7){ const d=new Date(); d.setTime(d.getTime()+days*864e5); document.cookie=`${k}=${encodeURIComponent(v)}; expires=${d.toUTCString()}; path=/; SameSite=Lax`; }
-function getCookie(k){ return document.cookie.split('; ').reduce((o,p)=>{const [a,...b]=p.split('=');o[a]=decodeURIComponent(b.join('='));return o;},{})[k]; }
-function getCart(){ try{ return JSON.parse(getCookie('cart')||'[]'); }catch{ return []; } }
-function saveCart(items){ setCookie('cart', JSON.stringify(items)); }
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null && val !== "") {
+      url.searchParams.append(key, val);
+    }
+  });
 
-// ====== FILE → BASE64 (kompres) ======
-async function fileToBase64Compressed(file, maxW=1200, quality=0.8){
-  const img = new Image(); const fr=new FileReader();
-  await new Promise(res=>{ fr.onload=()=>{ img.src=fr.result; res(); }; fr.readAsDataURL(file); });
-  await new Promise(res=>{ img.onload=res; });
-  const ratio = Math.min(1, maxW/img.width);
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(img.width*ratio); canvas.height = Math.round(img.height*ratio);
-  const ctx = canvas.getContext('2d'); ctx.drawImage(img,0,0,canvas.width,canvas.height);
-  return canvas.toDataURL('image/jpeg', quality);
+  let res = await fetch(url);
+  if (!res.ok) throw new Error("API GET error " + res.status);
+  return await res.json();
 }
 
-// ====== GSAP Reveal (opsional, otomatis aktif jika gsap tersedia) ======
-window.addEventListener('DOMContentLoaded', ()=>{
-  if(window.gsap && window.ScrollTrigger){
-    gsap.registerPlugin(ScrollTrigger);
-    document.querySelectorAll('[data-reveal]').forEach(el=>{
-      gsap.fromTo(el,{y:16,opacity:0},{y:0,opacity:1,duration:.6,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 90%'}});
-    });
-  }
-});
+/**
+ * Fungsi POST (kirim data ke Apps Script)
+ * @param {string} action - nama aksi (ex: addOrder)
+ * @param {object} data - data JSON yang dikirim
+ */
+async function apiPost(action, data = {}) {
+  data.action = action;
+
+  let res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" }
+  });
+
+  if (!res.ok) throw new Error("API POST error " + res.status);
+  return await res.json();
+}
+
+// -----------------------------
+// API ENDPOINTS
+// -----------------------------
+
+// Ambil semua produk
+async function getProducts() {
+  return await apiGet("getProducts");
+}
+
+// Tambah order baru
+async function addOrder(orderData) {
+  return await apiPost("addOrder", orderData);
+}
+
+// Upload bukti pembayaran (base64)
+async function uploadProof(orderId, proofBase64) {
+  return await apiPost("uploadProof", { orderId, proof: proofBase64 });
+}
+
+// Ambil semua order (admin)
+async function getOrders() {
+  return await apiGet("getOrders");
+}
+
+// Update status order (admin)
+async function updateOrderStatus(orderId, status) {
+  return await apiPost("updateOrderStatus", { orderId, status });
+}
+
+// -----------------------------
+// Export ke global supaya bisa dipanggil dari main.js
+// -----------------------------
+window.getProducts = getProducts;
+window.addOrder = addOrder;
+window.uploadProof = uploadProof;
+window.getOrders = getOrders;
+window.updateOrderStatus = updateOrderStatus;
