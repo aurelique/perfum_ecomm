@@ -3,23 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Keranjang Belanja</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding:20px; }
-    ul { list-style: none; padding:0; }
-    li { margin:10px 0; }
-    button { margin-left:10px; cursor:pointer; }
-  </style>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/main.js" defer></script>
 </head>
-<body onload="pageCart()">
-
+<body>
   <h1>Keranjang Belanja</h1>
-  <ul id="cart-list"></ul>
-  <h3>Total: <span id="cart-total">0</span></h3>
-
-  <p><a href="checkout.html">Lanjut ke Checkout</a></p>
-  <p><a href="index.html">Kembali ke Produk</a></p>
-
-  <script src="js/gsapi.js"></script>
-  <script src="js/main.js"></script>
+  <div id="cart-items"></div>
+  <h3>Total: <span id="cart-total">Rp 0</span></h3>
+  <a href="index.html">⬅️ Kembali belanja</a> | 
+  <a href="checkout.html">Checkout ➡️</a>
 </body>
 </html>

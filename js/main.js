@@ -1,91 +1,132 @@
-// simpan cart di localStorage
+// ================================
+// KONFIGURASI SUPABASE
+// ================================
+const SUPABASE_URL = "https://tmgkanevoumepdtezzit.supabase.co/"; // 🔑 ganti
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtZ2thbmV2b3VtZXBkdGV6eml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0ODYxNzYsImV4cCI6MjA3MjA2MjE3Nn0.PhNEweJ6CPB8dOaS1gC4WFSGK9r7OlPuWgTcEjxxt78"; // 🔑 ganti
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ================================
+// CART MANAGEMENT (LocalStorage)
+// ================================
 function getCart() {
   return JSON.parse(localStorage.getItem("cart") || "[]");
 }
+
 function saveCart(cart) {
   localStorage.setItem("cart", JSON.stringify(cart));
 }
+
 function addToCart(product) {
   let cart = getCart();
-  cart.push(product);
-  saveCart(cart);
-  alert("Produk ditambahkan ke cart");
-}
-
-// halaman index
-async function pageIndex() {
-  try {
-    const products = await getProducts();
-    const list = document.getElementById("product-list");
-    list.innerHTML = "";
-    products.forEach(p => {
-      const div = document.createElement("div");
-      div.className = "product";
-      div.innerHTML = `
-        <img src="${p.image_url}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>${p.description}</p>
-        <strong>Rp ${p.price_idr}</strong><br>
-        <button onclick='addToCart(${JSON.stringify(p)})'>Tambah</button>
-      `;
-      list.appendChild(div);
-    });
-  } catch(err) {
-    document.getElementById("product-list").innerText = "Gagal load produk";
-    console.error(err);
+  const found = cart.find(item => item.id === product.id);
+  if (found) {
+    found.qty += 1;
+  } else {
+    cart.push({ ...product, qty: 1 });
   }
-}
-
-// halaman cart
-function pageCart() {
-  let cart = getCart();
-  const list = document.getElementById("cart-list");
-  let total = 0;
-  list.innerHTML = "";
-  cart.forEach((p, i) => {
-    total += Number(p.price_idr);
-    let li = document.createElement("li");
-    li.innerHTML = `${p.name} - Rp ${p.price_idr} 
-      <button onclick="removeFromCart(${i})">Hapus</button>`;
-    list.appendChild(li);
-  });
-  document.getElementById("cart-total").innerText = total;
-}
-
-function removeFromCart(i) {
-  let cart = getCart();
-  cart.splice(i, 1);
   saveCart(cart);
-  pageCart();
+  alert("✅ Produk ditambahkan ke keranjang!");
 }
 
-// halaman checkout
-function pageCheckout() {
-  let cart = getCart();
-  let total = cart.reduce((s, p) => s + Number(p.price_idr), 0);
-  document.getElementById("checkout-total").innerText = total;
+// ================================
+// LOAD PRODUCTS
+// ================================
+async function loadProducts() {
+  const { data: products, error } = await db
+    .from("products")
+    .select("*")
+    .eq("active", true);
 
-  document.getElementById("checkout-form").onsubmit = async (e) => {
-    e.preventDefault();
-    let data = {
-      name: e.target.name.value,
-      phone: e.target.phone.value,
-      address: e.target.address.value,
+  if (error) {
+    console.error("❌ Error load produk:", error);
+    document.getElementById("product-list").innerHTML = "<p>Gagal load produk</p>";
+    return;
+  }
+
+  const container = document.getElementById("product-list");
+  container.innerHTML = "";
+
+  products.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      <img src="${p.image_url}" alt="${p.name}" width="200"/>
+      <h3>${p.name}</h3>
+      <p>${p.description}</p>
+      <p><strong>Rp ${p.price_idr.toLocaleString()}</strong></p>
+      <button onclick='addToCart(${JSON.stringify(p)})'>+ Keranjang</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ================================
+// RENDER CART
+// ================================
+function renderCart() {
+  const cart = getCart();
+  const container = document.getElementById("cart-items");
+  const totalEl = document.getElementById("cart-total");
+
+  container.innerHTML = "";
+  let total = 0;
+
+  cart.forEach(item => {
+    total += item.price_idr * item.qty;
+    const div = document.createElement("div");
+    div.innerHTML = `
+      ${item.name} x ${item.qty} = Rp ${(item.price_idr * item.qty).toLocaleString()}
+    `;
+    container.appendChild(div);
+  });
+
+  totalEl.innerText = "Rp " + total.toLocaleString();
+}
+
+// ================================
+// CHECKOUT
+// ================================
+async function checkout() {
+  const cart = getCart();
+  if (cart.length === 0) {
+    alert("⚠️ Keranjang kosong!");
+    return;
+  }
+
+  const nama = document.getElementById("cust-name").value;
+  const phone = document.getElementById("cust-phone").value;
+  const address = document.getElementById("cust-address").value;
+  const total = cart.reduce((sum, i) => sum + i.price_idr * i.qty, 0);
+
+  const { data, error } = await db.from("orders").insert([
+    {
+      customer: nama,
+      phone,
+      address,
       items: cart,
-      total
-    };
-    try {
-      let res = await addOrder(data);
-      if(res.success) {
-        alert("Pesanan berhasil! Cart dikosongkan.");
-        localStorage.removeItem("cart");
-        window.location.href = "index.html";
-      } else {
-        alert("Checkout gagal");
-      }
-    } catch(err) {
-      alert("Checkout error: " + err);
-      console.error(err);
+      total_idr: total,
+      status: "pending"
     }
-  };
+  ]);
+
+  if (error) {
+    console.error("❌ Checkout gagal:", error);
+    alert("Checkout gagal, coba lagi!");
+    return;
+  }
+
+  alert("✅ Pesanan berhasil!");
+  localStorage.removeItem("cart");
+  window.location.href = "index.html";
 }
+
+// ================================
+// PAGE INIT
+// ================================
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("product-list")) loadProducts();
+  if (document.getElementById("cart-items")) renderCart();
+  if (document.getElementById("checkout-btn")) {
+    document.getElementById("checkout-btn").addEventListener("click", checkout);
+  }
+});
