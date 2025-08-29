@@ -1,68 +1,81 @@
-// Ganti dengan URL Web App dari Google Apps Script
+// ==============================
+// KONFIGURASI
+// ==============================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1OpMv4SjO9XVJsTzSO1w7km2XMCv4RYjxdKHMJYNRU9EclY_fH/exec";
+
+// ==============================
+// FUNGSI DASAR API
+// ==============================
 
 /**
  * Fungsi GET (baca data dari Apps Script)
- * @param {string} action - nama aksi (ex: getProducts)
- * @param {object} params - parameter tambahan (optional)
+ * @param {string} action - nama aksi (ex: listProducts)
  */
 async function apiGet(action){
-  const url = `https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1OpMv4SjO9XVJsTzSO1w7km2XMCv4RYjxdKHMJYNRU9EclY_fH/exec?action=${action}`;
+  const url = `${SCRIPT_URL}?action=${action}`;
   const res = await fetch(url);
-  return res.json(); // harus array langsung
+  if (!res.ok) throw new Error("API GET error " + res.status);
+  return res.json(); // langsung return array/object
 }
+
 /**
  * Fungsi POST (kirim data ke Apps Script)
  * @param {string} action - nama aksi (ex: addOrder)
- * @param {object} data - data JSON yang dikirim
+ * @param {object} data - payload JSON
  */
 async function apiPost(action, data = {}) {
   data.action = action;
 
-  let res = await fetch(SCRIPT_URL, {
+  const res = await fetch(SCRIPT_URL, {
     method: "POST",
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" }
   });
 
   if (!res.ok) throw new Error("API POST error " + res.status);
-  return await res.json();
+  return res.json();
 }
 
-// -----------------------------
-// API ENDPOINTS
-// -----------------------------
+// ==============================
+// API KHUSUS (sesuai kebutuhan sistem)
+// ==============================
 
-// Ambil semua produk
-async function getProducts() {
-  return await apiGet("getProducts");
+// Produk
+async function listProducts() {
+  return await apiGet("listProducts"); // dipakai di pageIndex()
 }
 
-// Tambah order baru
+// Order
 async function addOrder(orderData) {
   return await apiPost("addOrder", orderData);
 }
 
-// Upload bukti pembayaran (base64)
 async function uploadProof(orderId, proofBase64) {
   return await apiPost("uploadProof", { orderId, proof: proofBase64 });
 }
 
-// Ambil semua order (admin)
-async function getOrders() {
-  return await apiGet("getOrders");
+async function listOrders() {
+  return await apiGet("listOrders");
 }
 
-// Update status order (admin)
 async function updateOrderStatus(orderId, status) {
   return await apiPost("updateOrderStatus", { orderId, status });
 }
 
-// -----------------------------
-// Export ke global supaya bisa dipanggil dari main.js
-// -----------------------------
-window.getProducts = getProducts;
+// Settings (misalnya nomor WA admin, nomor rekening BCA)
+async function getSettings() {
+  return await apiGet("settings");
+}
+
+// ==============================
+// EKSPOR KE GLOBAL
+// ==============================
+window.apiGet = apiGet;
+window.apiPost = apiPost;
+
+window.listProducts = listProducts;
 window.addOrder = addOrder;
 window.uploadProof = uploadProof;
-window.getOrders = getOrders;
+window.listOrders = listOrders;
 window.updateOrderStatus = updateOrderStatus;
+window.getSettings = getSettings;
