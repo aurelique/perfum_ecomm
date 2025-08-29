@@ -5,38 +5,7 @@ const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5
 // Fungsi untuk memuat produk
 async function loadProducts() {
     try {
-        // Simulasi data produk (sebenarnya akan diambil dari Google Sheets)
-        const products = [
-            {
-                id: 'P001',
-                name: 'Midnight Oud',
-                description: 'Parfum elegan dengan aroma kayu yang hangat dan sensual',
-                price: 450000,
-                image: 'https://images.unsplash.com/photo-1597045382136-97c99954945a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                id: 'P002',
-                name: 'Rose Garden',
-                description: 'Aroma bunga mawar yang segar dan memikat',
-                price: 380000,
-                image: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                id: 'P003',
-                name: 'Ocean Breeze',
-                description: 'Wangi segar seperti angin laut di pagi hari',
-                price: 320000,
-                image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-            },
-            {
-                id: 'P004',
-                name: 'Vanilla Dream',
-                description: 'Aroma vanilla manis yang hangat dan menggoda',
-                price: 350000,
-                image: 'https://images.unsplash.com/photo-1597045079143-195555b0d71a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-            }
-        ];
-        
+        const products = await fetchProducts();
         const container = document.getElementById('products-container');
         container.innerHTML = '';
         
@@ -45,13 +14,13 @@ async function loadProducts() {
             productCard.className = 'product-card';
             productCard.innerHTML = `
                 <div class="product-image">
-                    <img src="${product.image}" alt="${product.name}">
+                    <img src="${product.image_url}" alt="${product.name}">
                 </div>
                 <div class="product-info">
                     <h3>${product.name}</h3>
                     <p>${product.description}</p>
-                    <div class="product-price">Rp ${product.price.toLocaleString('id-ID')}</div>
-                    <button class="add-to-cart" onclick="addToCart('${product.id}', '${product.name}', ${product.price}, '${product.image}')">Tambah ke Keranjang</button>
+                    <div class="product-price">Rp ${parseInt(product.price).toLocaleString('id-ID')}</div>
+                    <button class="add-to-cart" onclick="addToCart('${product.id}', '${product.name}', ${product.price}, '${product.image_url}')">Tambah ke Keranjang</button>
                 </div>
             `;
             container.appendChild(productCard);
@@ -73,7 +42,7 @@ function addToCart(id, name, price, image) {
         cart.push({
             id,
             name,
-            price,
+            price: parseInt(price),
             image,
             quantity: 1
         });
@@ -160,7 +129,7 @@ function removeFromCart(id) {
 }
 
 // Fungsi untuk memproses checkout
-function processCheckout() {
+async function processCheckout() {
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
     const address = document.getElementById('address').value;
@@ -170,17 +139,87 @@ function processCheckout() {
         return;
     }
     
-    // Simpan informasi pelanggan
+    // Hitung total
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const total = subtotal + 15000; // Ongkos kirim
+    
+    // Buat data pesanan
     const orderData = {
         customerName: name,
         customerPhone: phone,
         customerAddress: address,
         items: cart,
-        total: cart.reduce((total, item) => total + (item.price * item.quantity), 0) + 15000
+        total: total
     };
     
-    localStorage.setItem('orderData', JSON.stringify(orderData));
-    window.location.href = 'payment.html';
+    try {
+        const response = await createOrder(orderData);
+        if (response.success) {
+            // Simpan orderId untuk pembayaran
+            localStorage.setItem('currentOrderId', response.orderId);
+            localStorage.setItem('orderTotal', total);
+            
+            // Kosongkan keranjang
+            cart = [];
+            localStorage.removeItem('cart');
+            
+            // Redirect ke payment page
+            window.location.href = 'payment.html';
+        } else {
+            alert('Gagal membuat pesanan. Silakan coba lagi.');
+        }
+    } catch (error) {
+        console.error('Error creating order:', error);
+        alert('Terjadi kesalahan. Silakan coba lagi.');
+    }
+}
+
+// Fungsi untuk upload bukti pembayaran
+async function uploadPaymentProof() {
+    const fileInput = document.getElementById('payment-proof');
+    const orderId = localStorage.getItem('currentOrderId');
+    const total = localStorage.getItem('orderTotal');
+    
+    if (!fileInput.files[0]) {
+        alert('Harap pilih file bukti pembayaran');
+        return;
+    }
+    
+    if (!orderId) {
+        alert('ID pesanan tidak ditemukan');
+        return;
+    }
+    
+    try {
+        // Konversi gambar ke base64
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const base64 = reader.result.split(',')[1]; // Hapus prefix image/*
+            
+            // Simpan bukti pembayaran
+            const response = await savePaymentProof(orderId, base64);
+            
+            if (response.success) {
+                // Kirim WhatsApp langsung ke admin
+                const adminPhone = '628123456789'; // Ganti dengan nomor admin
+                const message = `🔔 NOTIFIKASI PEMBAYARAN BARU 🔔\n\nID Pesanan: ${orderId}\nStatus: Bukti Pembayaran Diupload\n\nSilakan cek bukti pembayaran di Google Sheets.`;
+                
+                // Buka WhatsApp dengan pesan
+                window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`, '_blank');
+                
+                alert('Bukti pembayaran berhasil diupload! Anda akan diarahkan ke WhatsApp untuk mengirim notifikasi.');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+            } else {
+                alert('Gagal mengupload bukti pembayaran. Silakan coba lagi.');
+            }
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } catch (error) {
+        console.error('Error uploading payment proof:', error);
+        alert('Terjadi kesalahan saat mengupload bukti pembayaran.');
+    }
 }
 
 // Fungsi untuk toggle menu mobile
