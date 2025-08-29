@@ -6,15 +6,30 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5W8BLy
 async function fetchProducts() {
     try {
         console.log('Fetching products from:', GAS_URL + '?action=getProducts');
-        const response = await fetch(GAS_URL + '?action=getProducts');
+        
+        // Tambahkan timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+        
+        const response = await fetch(GAS_URL + '?action=getProducts', {
+            method: 'GET',
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         const data = await response.json();
         console.log('Products fetched:', data);
         return data;
     } catch (error) {
         console.error('Error fetching products:', error);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout - server tidak merespon');
+        }
         throw error;
     }
 }
@@ -23,6 +38,11 @@ async function fetchProducts() {
 async function addProduct(product) {
     try {
         console.log('Adding product:', product);
+        
+        // Tambahkan timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
+        
         const response = await fetch(GAS_URL, {
             method: 'POST',
             headers: {
@@ -31,8 +51,11 @@ async function addProduct(product) {
             body: JSON.stringify({
                 action: 'addProduct',
                 ...product
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -43,6 +66,9 @@ async function addProduct(product) {
         return data;
     } catch (error) {
         console.error('Error adding product:', error);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout - server tidak merespon');
+        }
         throw error;
     }
 }
@@ -51,6 +77,11 @@ async function addProduct(product) {
 async function createOrder(orderData) {
     try {
         console.log('Creating order:', orderData);
+        
+        // Tambahkan timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
+        
         const response = await fetch(GAS_URL, {
             method: 'POST',
             headers: {
@@ -59,8 +90,11 @@ async function createOrder(orderData) {
             body: JSON.stringify({
                 action: 'createOrder',
                 ...orderData
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -71,6 +105,9 @@ async function createOrder(orderData) {
         return data;
     } catch (error) {
         console.error('Error creating order:', error);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout - server tidak merespon');
+        }
         throw error;
     }
 }
@@ -79,15 +116,30 @@ async function createOrder(orderData) {
 async function fetchOrders() {
     try {
         console.log('Fetching orders from:', GAS_URL + '?action=getOrders');
-        const response = await fetch(GAS_URL + '?action=getOrders');
+        
+        // Tambahkan timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+        
+        const response = await fetch(GAS_URL + '?action=getOrders', {
+            method: 'GET',
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         const data = await response.json();
         console.log('Orders fetched:', data);
         return data;
     } catch (error) {
         console.error('Error fetching orders:', error);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout - server tidak merespon');
+        }
         throw error;
     }
 }
@@ -96,6 +148,11 @@ async function fetchOrders() {
 async function updateOrderStatus(orderId, status) {
     try {
         console.log('Updating order status:', { orderId, status });
+        
+        // Tambahkan timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
+        
         const response = await fetch(GAS_URL, {
             method: 'POST',
             headers: {
@@ -105,8 +162,11 @@ async function updateOrderStatus(orderId, status) {
                 action: 'updateOrderStatus',
                 orderId,
                 status
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -117,6 +177,9 @@ async function updateOrderStatus(orderId, status) {
         return data;
     } catch (error) {
         console.error('Error updating order status:', error);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout - server tidak merespon');
+        }
         throw error;
     }
 }
@@ -125,6 +188,11 @@ async function updateOrderStatus(orderId, status) {
 async function savePaymentProof(orderId, proofBase64) {
     try {
         console.log('Saving payment proof for order:', orderId);
+        
+        // Tambahkan timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 detik timeout
+        
         const response = await fetch(GAS_URL, {
             method: 'POST',
             headers: {
@@ -134,8 +202,11 @@ async function savePaymentProof(orderId, proofBase64) {
                 action: 'savePaymentProof',
                 orderId,
                 proof: proofBase64
-            })
+            }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -146,6 +217,9 @@ async function savePaymentProof(orderId, proofBase64) {
         return data;
     } catch (error) {
         console.error('Error saving payment proof:', error);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timeout - server tidak merespon');
+        }
         throw error;
     }
 }
