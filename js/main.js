@@ -1,6 +1,6 @@
 // Variabel global
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
-const API_BASE_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL'; // Ganti dengan URL Web App Anda
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5W8BLy2DG1Pqo-20evsNgzxCYd5Od6R3sgeZy1UFMCT-p3lEI/exec'; // Ganti dengan URL Web App Anda
 
 // Fungsi untuk memuat produk
 async function loadProducts() {
@@ -202,3 +202,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle menu mobile
     document.querySelector('.menu-toggle').addEventListener('click', toggleMenu);
 });
+
