@@ -1059,3 +1059,98 @@ h1, h2, h3, h4 {
         grid-template-columns: 1fr;
     }
 }
+
+/* Tambahkan style ini di bagian akhir file css/style.css */
+
+/* Quantity Controls di Cart */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.quantity-btn:hover {
+    background: #d4af37;
+    color: white;
+    border-color: #d4af37;
+}
+
+.remove-item {
+    color: #e74c3c;
+    cursor: pointer;
+    margin-left: 20px;
+    font-size: 1.2rem;
+    transition: color 0.3s;
+}
+
+.remove-item:hover {
+    color: #c0392b;
+}
+
+/* Bank Info di Checkout */
+.bank-info {
+    background: #fff8e1;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border-left: 4px solid #ffc107;
+}
+
+.bank-details {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.note {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #2196f3;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.help-text {
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: 5px;
+}
+
+/* Responsive untuk quantity controls */
+@media (max-width: 576px) {
+    .cart-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .cart-item-image {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .quantity-controls {
+        justify-content: center;
+    }
+    
+    .remove-item {
+        margin-left: 0;
+        margin-top: 15px;
+    }
+}
