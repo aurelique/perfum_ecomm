@@ -6,21 +6,11 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1Op
  * @param {string} action - nama aksi (ex: getProducts)
  * @param {object} params - parameter tambahan (optional)
  */
-async function apiGet(action, params = {}) {
-  const url = new URL(SCRIPT_URL);
-  url.searchParams.append("action", action);
-
-  Object.entries(params).forEach(([key, val]) => {
-    if (val !== undefined && val !== null && val !== "") {
-      url.searchParams.append(key, val);
-    }
-  });
-
-  let res = await fetch(url);
-  if (!res.ok) throw new Error("API GET error " + res.status);
-  return await res.json();
+async function apiGet(action){
+  const url = `https://script.google.com/macros/s/DEPLOYMENT_ID/exec?action=${action}`;
+  const res = await fetch(url);
+  return res.json(); // harus array langsung
 }
-
 /**
  * Fungsi POST (kirim data ke Apps Script)
  * @param {string} action - nama aksi (ex: addOrder)
