@@ -1,5 +1,5 @@
 // Ganti dengan URL Web App Apps Script (Deploy → Web App → URL)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1OpMv4SjO9XVJsTzSO1w7km2XMCv4RYjxdKHMJYNRU9EclY_fH/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5W8BLy2DG1Pqo-20evsNgzxCYd5Od6R3sgeZy1UFMCT-p3lEI/exec";
 
 // Fungsi GET
 async function apiGet(action) {
