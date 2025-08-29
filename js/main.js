@@ -3,7 +3,7 @@ async function pageIndex(){
   const grid = document.getElementById('product-grid'); 
   if(!grid) return;
 
-  const products = await getProducts(); // pakai wrapper dari gsapi.js
+  const products = await apiGet('listProducts');// pakai wrapper dari gsapi.js
   const items = getCart();
 
   function add(pid){
