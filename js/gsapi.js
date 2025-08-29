@@ -1,225 +1,44 @@
-// Google Apps Script API Handler
-// GANTI dengan URL Web App Anda dari Google Apps Script
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbz4_80DlESn-zfB6S5W8BLy2DG1Pqo-20evsNgzxCYd5Od6R3sgeZy1UFMCT-p3lEI/exec';
+// ====== KONFIG ======
+const API_BASE = 'https://script.google.com/macros/s/AKfycbw7YiMy8fLh_q5qk_1OpMv4SjO9XVJsTzSO1w7km2XMCv4RYjxdKHMJYNRU9EclY_fH/exec'; // contoh: https://script.google.com/macros/s/.../exec
+const fmtIDR = v => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR'}).format(v||0);
 
-// Fungsi untuk mengambil data produk dari Google Sheets
-async function fetchProducts() {
-    try {
-        console.log('Fetching products from:', GAS_URL + '?action=getProducts');
-        
-        // Tambahkan timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
-        
-        const response = await fetch(GAS_URL + '?action=getProducts', {
-            method: 'GET',
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Products fetched:', data);
-        return data;
-    } catch (error) {
-        console.error('Error fetching products:', error);
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout - server tidak merespon');
-        }
-        throw error;
-    }
+// ====== API HELPERS ======
+async function apiGet(action, params={}){
+  const url = new URL(API_BASE);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v])=> url.searchParams.set(k,v));
+  const r = await fetch(url.toString(), {method:'GET'});
+  const j = await r.json(); if(!j.ok) throw new Error(j.error||'API error'); return j.data;
+}
+async function apiPost(action, body={}){
+  const r = await fetch(API_BASE, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, ...body})});
+  const j = await r.json(); if(!j.ok) throw new Error(j.error||'API error'); return j.data;
 }
 
-// Fungsi untuk menambahkan produk ke Google Sheets
-async function addProduct(product) {
-    try {
-        console.log('Adding product:', product);
-        
-        // Tambahkan timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
-        
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'addProduct',
-                ...product
-            }),
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Product added response:', data);
-        return data;
-    } catch (error) {
-        console.error('Error adding product:', error);
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout - server tidak merespon');
-        }
-        throw error;
-    }
+// ====== COOKIE CART (tanpa localStorage) ======
+function setCookie(k,v,days=7){ const d=new Date(); d.setTime(d.getTime()+days*864e5); document.cookie=`${k}=${encodeURIComponent(v)}; expires=${d.toUTCString()}; path=/; SameSite=Lax`; }
+function getCookie(k){ return document.cookie.split('; ').reduce((o,p)=>{const [a,...b]=p.split('=');o[a]=decodeURIComponent(b.join('='));return o;},{})[k]; }
+function getCart(){ try{ return JSON.parse(getCookie('cart')||'[]'); }catch{ return []; } }
+function saveCart(items){ setCookie('cart', JSON.stringify(items)); }
+
+// ====== FILE → BASE64 (kompres) ======
+async function fileToBase64Compressed(file, maxW=1200, quality=0.8){
+  const img = new Image(); const fr=new FileReader();
+  await new Promise(res=>{ fr.onload=()=>{ img.src=fr.result; res(); }; fr.readAsDataURL(file); });
+  await new Promise(res=>{ img.onload=res; });
+  const ratio = Math.min(1, maxW/img.width);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.width*ratio); canvas.height = Math.round(img.height*ratio);
+  const ctx = canvas.getContext('2d'); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  return canvas.toDataURL('image/jpeg', quality);
 }
 
-// Fungsi untuk membuat pesanan
-async function createOrder(orderData) {
-    try {
-        console.log('Creating order:', orderData);
-        
-        // Tambahkan timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 detik timeout
-        
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'createOrder',
-                ...orderData
-            }),
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Order created response:', data);
-        return data;
-    } catch (error) {
-        console.error('Error creating order:', error);
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout - server tidak merespon');
-        }
-        throw error;
-    }
-}
-
-// Fungsi untuk mengambil data pesanan
-async function fetchOrders() {
-    try {
-        console.log('Fetching orders from:', GAS_URL + '?action=getOrders');
-        
-        // Tambahkan timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
-        
-        const response = await fetch(GAS_URL + '?action=getOrders', {
-            method: 'GET',
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Orders fetched:', data);
-        return data;
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout - server tidak merespon');
-        }
-        throw error;
-    }
-}
-
-// Fungsi untuk memperbarui status pesanan
-async function updateOrderStatus(orderId, status) {
-    try {
-        console.log('Updating order status:', { orderId, status });
-        
-        // Tambahkan timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 detik timeout
-        
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'updateOrderStatus',
-                orderId,
-                status
-            }),
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Order status updated response:', data);
-        return data;
-    } catch (error) {
-        console.error('Error updating order status:', error);
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout - server tidak merespon');
-        }
-        throw error;
-    }
-}
-
-// Fungsi untuk menyimpan bukti pembayaran
-async function savePaymentProof(orderId, proofBase64) {
-    try {
-        console.log('Saving payment proof for order:', orderId);
-        
-        // Tambahkan timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 detik timeout
-        
-        const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'savePaymentProof',
-                orderId,
-                proof: proofBase64
-            }),
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Payment proof saved response:', data);
-        return data;
-    } catch (error) {
-        console.error('Error saving payment proof:', error);
-        if (error.name === 'AbortError') {
-            throw new Error('Request timeout - server tidak merespon');
-        }
-        throw error;
-    }
-}
+// ====== GSAP Reveal (opsional, otomatis aktif jika gsap tersedia) ======
+window.addEventListener('DOMContentLoaded', ()=>{
+  if(window.gsap && window.ScrollTrigger){
+    gsap.registerPlugin(ScrollTrigger);
+    document.querySelectorAll('[data-reveal]').forEach(el=>{
+      gsap.fromTo(el,{y:16,opacity:0},{y:0,opacity:1,duration:.6,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 90%'}});
+    });
+  }
+});
