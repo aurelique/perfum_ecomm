@@ -61,27 +61,69 @@ function updateCartCount() {
 
 // Fungsi untuk memuat item keranjang (di bagian summary checkout)
 function loadCartItems() {
+    const container = document.getElementById('cart-items');
     const subtotalElement = document.getElementById('subtotal');
     const totalElement = document.getElementById('total');
     
-    if (!subtotalElement || !totalElement) return; // Hanya di halaman checkout
-    
-    if (cart.length === 0) {
-        subtotalElement.textContent = 'Rp 0';
-        totalElement.textContent = 'Rp 0';
-        return;
+    // Jika di halaman cart
+    if (container) {
+        if (cart.length === 0) {
+            container.innerHTML = '<p class="text-center">Keranjang Anda kosong</p>';
+            if (subtotalElement) subtotalElement.textContent = 'Rp 0';
+            if (totalElement) totalElement.textContent = 'Rp 0';
+            return;
+        }
+        
+        container.innerHTML = '';
+        let subtotal = 0;
+        
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+            
+            const cartItem = document.createElement('div');
+            cartItem.className = 'cart-item';
+            cartItem.innerHTML = `
+                <div class="cart-item-image">
+                    <img src="${item.image}" alt="${item.name}">
+                </div>
+                <div class="cart-item-details">
+                    <h3>${item.name}</h3>
+                    <div class="cart-item-price">Rp ${item.price.toLocaleString('id-ID')}</div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
+                    </div>
+                </div>
+                <div class="remove-item" onclick="removeFromCart('${item.id}')">
+                    <i class="fas fa-trash"></i>
+                </div>
+            `;
+            container.appendChild(cartItem);
+        });
+        
+        const total = subtotal + 15000; // Ongkos kirim
+        if (subtotalElement) subtotalElement.textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        if (totalElement) totalElement.textContent = `Rp ${total.toLocaleString('id-ID')}`;
     }
-    
-    let subtotal = 0;
-    
-    cart.forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        subtotal += itemTotal;
-    });
-    
-    const total = subtotal + 15000; // Ongkos kirim
-    subtotalElement.textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
-    totalElement.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+    // Jika hanya di halaman checkout (summary)
+    else if (subtotalElement && totalElement) {
+        if (cart.length === 0) {
+            subtotalElement.textContent = 'Rp 0';
+            totalElement.textContent = 'Rp 0';
+            return;
+        }
+        
+        let subtotal = 0;
+        cart.forEach(item => {
+            subtotal += item.price * item.quantity;
+        });
+        
+        const total = subtotal + 15000; // Ongkos kirim
+        subtotalElement.textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        totalElement.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+    }
 }
 
 // Fungsi untuk memperbarui jumlah item
@@ -155,8 +197,8 @@ async function processCheckoutWithPayment() {
                     localStorage.removeItem('cart');
                     
                     // Redirect ke WhatsApp admin dengan pesan otomatis
-                    const adminPhone = '6283840556211'; // Ganti dengan nomor admin Anda
-                    const message = `🔔 NOTIFIKASI PEMBAYARAN BARU 🔔\n\nID Pesanan: ${orderId}\nNama: ${name}\nTotal: Rp ${total.toLocaleString('id-ID')}\nStatus: Bukti Pembayaran Diupload\n\nSilakan cek bukti pembayarannya.`;
+                    const adminPhone = '628123456789'; // Ganti dengan nomor admin Anda
+                    const message = `🔔 NOTIFIKASI PEMBAYARAN BARU 🔔\n\nID Pesanan: ${orderId}\nNama: ${name}\nTotal: Rp ${total.toLocaleString('id-ID')}\nStatus: Bukti Pembayaran Diupload\n\nSilakan cek bukti pembayaran di Google Sheets.`;
                     const encodedMessage = encodeURIComponent(message);
                     
                     // Buka WhatsApp dengan pesan
@@ -176,7 +218,7 @@ async function processCheckoutWithPayment() {
             };
             reader.readAsDataURL(fileInput.files[0]);
         } else {
-            alert('Gagal membuat pesanan. Silakan coba lagi.');
+            alert('Gagal membuat pesanan: ' + (orderResponse.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error processing checkout:', error);
@@ -200,8 +242,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update cart count
     updateCartCount();
     
-    // Load cart items if on checkout page
-    if (document.getElementById('subtotal') && document.getElementById('total')) {
+    // Load cart items if on cart or checkout page
+    if (document.getElementById('cart-items') || 
+        (document.getElementById('subtotal') && document.getElementById('total'))) {
         loadCartItems();
     }
     

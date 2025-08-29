@@ -39,6 +39,11 @@ async function loadAdminProducts() {
         const container = document.getElementById('admin-products-container');
         container.innerHTML = '';
         
+        if (products.length === 0) {
+            container.innerHTML = '<p class="text-center">Belum ada produk</p>';
+            return;
+        }
+        
         products.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
@@ -60,6 +65,7 @@ async function loadAdminProducts() {
         });
     } catch (error) {
         console.error('Error loading admin products:', error);
+        document.getElementById('admin-products-container').innerHTML = '<p class="text-center">Error memuat produk</p>';
     }
 }
 
@@ -83,18 +89,22 @@ async function addNewProduct() {
             image_url: image
         };
         
-        const response = await addProduct(productData);
+        console.log('Sending product data:', productData);
         
-        if (response.success) {
+        const response = await addProduct(productData);
+        console.log('Response from server:', response);
+        
+        if (response && response.success) {
             alert(`Produk "${name}" berhasil ditambahkan!`);
             document.getElementById('add-product-form').reset();
             loadAdminProducts();
         } else {
-            alert('Gagal menambahkan produk: ' + (response.error || 'Unknown error'));
+            const errorMessage = response && response.error ? response.error : 'Unknown error';
+            alert('Gagal menambahkan produk: ' + errorMessage);
         }
     } catch (error) {
         console.error('Error adding product:', error);
-        alert('Terjadi kesalahan saat menambahkan produk');
+        alert('Terjadi kesalahan saat menambahkan produk: ' + error.message);
     }
 }
 
@@ -108,6 +118,11 @@ async function loadOrders() {
         
         const tbody = document.getElementById('orders-table-body');
         tbody.innerHTML = '';
+        
+        if (orders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Belum ada pesanan</td></tr>';
+            return;
+        }
         
         // Filter dan sort orders
         let filteredOrders = orders;
@@ -150,6 +165,7 @@ async function loadOrders() {
         });
     } catch (error) {
         console.error('Error loading orders:', error);
+        document.getElementById('orders-table-body').innerHTML = '<tr><td colspan="6" class="text-center">Error memuat pesanan</td></tr>';
     }
 }
 
@@ -158,11 +174,6 @@ async function viewProof(orderId) {
     // Untuk saat ini, kita hanya menampilkan pesan
     // Dalam implementasi nyata, Anda bisa mengambil base64 dari Google Sheets
     alert('Fitur lihat bukti pembayaran akan menampilkan gambar dari database');
-    
-    // Contoh implementasi jika Anda ingin menampilkan gambar:
-    // 1. Ambil base64 dari Google Sheets
-    // 2. Decode base64 ke gambar
-    // 3. Tampilkan di modal
 }
 
 // Update status pesanan
@@ -186,7 +197,7 @@ async function updateOrderStatus(orderId) {
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminAuth();
     
-    // Load products if on dashboard
+    // Load products if on dashboard or products page
     if (document.getElementById('admin-products-container')) {
         loadAdminProducts();
     }
@@ -194,5 +205,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load orders if on orders page
     if (document.getElementById('orders-table-body')) {
         loadOrders();
+    }
+    
+    // Handle form submit for add product
+    if (document.getElementById('add-product-form')) {
+        document.getElementById('add-product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            addNewProduct();
+        });
+    }
+    
+    // Handle logout
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+    
+    // Handle order filters
+    const statusFilter = document.getElementById('status-filter');
+    const sortOrder = document.getElementById('sort-order');
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', loadOrders);
+    }
+    
+    if (sortOrder) {
+        sortOrder.addEventListener('change', loadOrders);
     }
 });

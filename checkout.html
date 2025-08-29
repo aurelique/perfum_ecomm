@@ -38,7 +38,7 @@
     <!-- Checkout Section -->
     <section class="checkout-section">
         <div class="container">
-            <h2>Checkout</h2>
+            <h2>Checkout & Pembayaran</h2>
             <div class="checkout-container">
                 <div class="checkout-form">
                     <h3>Informasi Pembeli</h3>
@@ -55,21 +55,41 @@
                             <label for="address">Alamat</label>
                             <textarea id="address" rows="3" required></textarea>
                         </div>
+                        
+                        <div class="bank-info">
+                            <h4>Transfer Bank</h4>
+                            <p>Silakan transfer ke rekening berikut:</p>
+                            <div class="bank-details">
+                                <p><strong>Bank:</strong> BCA</p>
+                                <p><strong>No. Rekening:</strong> 1234567890</p>
+                                <p><strong>Atas Nama:</strong> LuxeFragrance</p>
+                            </div>
+                            <p class="note">Setelah melakukan pembayaran, silakan upload bukti transfer di bawah ini.</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="payment-proof">Upload Bukti Pembayaran</label>
+                            <input type="file" id="payment-proof" accept="image/*" required>
+                            <p class="help-text">Format: JPG, PNG, atau GIF (max 5MB)</p>
+                        </div>
+                        
                         <button type="submit" class="btn btn-primary btn-block">Proses Pembayaran</button>
                     </form>
                 </div>
                 
-                <div class="payment-instructions">
-                    <h3>Instruksi Pembayaran</h3>
-                    <div class="bank-info">
-                        <h4>Transfer Bank</h4>
-                        <p>Silakan transfer ke rekening berikut:</p>
-                        <div class="bank-details">
-                            <p><strong>Bank:</strong> BCA</p>
-                            <p><strong>No. Rekening:</strong> 1234567890</p>
-                            <p><strong>Atas Nama:</strong> LuxeFragrance</p>
-                        </div>
-                        <p class="note">Setelah melakukan pembayaran, silakan upload bukti transfer di halaman berikutnya.</p>
+                <div class="order-summary">
+                    <h3>Ringkasan Pesanan</h3>
+                    <div class="summary-item">
+                        <span>Subtotal</span>
+                        <span id="subtotal">Rp 0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Ongkos Kirim</span>
+                        <span>Rp 15.000</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span>Total</span>
+                        <span id="total">Rp 0</span>
                     </div>
                 </div>
             </div>
@@ -114,9 +134,12 @@
     <script src="js/gsapi.js"></script>
     <script src="js/main.js"></script>
     <script>
-        document.getElementById('checkout-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            processCheckout();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCartItems();
+            document.getElementById('checkout-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                processCheckoutWithPayment();
+            });
         });
     </script>
 </body>
