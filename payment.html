@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Bukti Pembayaran - LuxeFragrance</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>Luxe<span>Fragrance</span></h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html">Beranda</a></li>
+                    <li><a href="index.html#products">Produk</a></li>
+                    <li><a href="cart.html">Keranjang</a></li>
+                    <li><a href="admin/login.html">Admin</a></li>
+                </ul>
+            </nav>
+            <div class="cart-icon">
+                <a href="cart.html">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Payment Section -->
+    <section class="payment-section">
+        <div class="container">
+            <h2>Upload Bukti Pembayaran</h2>
+            <div class="payment-container">
+                <div class="order-summary">
+                    <h3>Detail Pesanan</h3>
+                    <div class="summary-item">
+                        <span>ID Pesanan:</span>
+                        <span id="order-id">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Pembayaran:</span>
+                        <span id="order-total">Rp 0</span>
+                    </div>
+                    <div class="bank-info">
+                        <h4>Transfer Bank</h4>
+                        <p>Silakan transfer ke rekening berikut:</p>
+                        <div class="bank-details">
+                            <p><strong>Bank:</strong> BCA</p>
+                            <p><strong>No. Rekening:</strong> 1234567890</p>
+                            <p><strong>Atas Nama:</strong> LuxeFragrance</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="payment-form">
+                    <h3>Upload Bukti Transfer</h3>
+                    <form id="payment-form">
+                        <div class="form-group">
+                            <label for="payment-proof">Pilih File Bukti Pembayaran</label>
+                            <input type="file" id="payment-proof" accept="image/*" required>
+                            <p class="help-text">Format: JPG, PNG, atau GIF (max 5MB)</p>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Upload Bukti Pembayaran</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>LuxeFragrance</h3>
+                    <p>Parfum premium untuk individu yang unik dan berani mengekspresikan diri.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Kontak</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
+                    <p><i class="fas fa-phone"></i> +62 812 3456 7890</p>
+                    <p><i class="fas fa-envelope"></i> info@luxefragrance.com</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Layanan</h4>
+                    <ul>
+                        <li><a href="#">Bantuan</a></li>
+                        <li><a href="#">Pengiriman</a></li>
+                        <li><a href="#">Pengembalian</a></li>
+                        <li><a href="#">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 LuxeFragrance. Hak Cipta Dilindungi.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/gsapi.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load order details
+            const orderId = localStorage.getItem('currentOrderId');
+            const orderTotal = localStorage.getItem('orderTotal');
+            
+            if (orderId && orderTotal) {
+                document.getElementById('order-id').textContent = orderId;
+                document.getElementById('order-total').textContent = `Rp ${parseInt(orderTotal).toLocaleString('id-ID')}`;
+            }
+        });
+        
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            uploadPaymentProof();
+        });
+    </script>
+</body>
+</html>
