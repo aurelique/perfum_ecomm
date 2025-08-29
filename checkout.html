@@ -2,47 +2,37 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Checkout</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Checkout - Parfumeria</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>Checkout</h1>
+  <header>
+    <h1>Checkout</h1>
+    <nav>
+      <a href="index.html">Home</a> | 
+      <a href="cart.html">Cart</a>
+    </nav>
+  </header>
 
-  <!-- Form Customer -->
-  <form id="checkout-form" class="card">
-    <label>Nama Lengkap</label>
-    <input type="text" name="name" required>
+  <section>
+    <h2>Data Pemesan</h2>
+    <form id="checkout-form">
+      <label>Nama Lengkap</label>
+      <input type="text" name="name" required>
 
-    <label>No. WhatsApp</label>
-    <input type="text" name="phone" required>
+      <label>No. WhatsApp</label>
+      <input type="text" name="phone" required>
 
-    <label>Email</label>
-    <input type="email" name="email" required>
+      <label>Alamat</label>
+      <textarea name="address" required></textarea>
 
-    <label>Alamat</label>
-    <textarea name="address" required></textarea>
+      <button type="submit" class="btn">Buat Pesanan</button>
+    </form>
+  </section>
 
-    <label>Kota</label>
-    <input type="text" name="city" required>
-
-    <label>Kode Pos</label>
-    <input type="text" name="postal_code" required>
-
-    <button type="submit">Buat Pesanan</button>
-  </form>
-
-  <!-- Setelah Order Dibuat -->
-  <div id="after-order" style="display:none;" class="card">
-    <h3>Instruksi Pembayaran</h3>
-    <p id="order-msg"></p>
-    <p id="bca-info" style="font-weight:bold;color:darkred;"></p>
-
-    <hr>
-
-    <h4>Upload Bukti Transfer</h4>
-    <input type="file" id="proof-file" accept="image/*">
-    <button id="btn-upload-proof">Kirim Bukti & Chat Admin</button>
-  </div>
+  <footer>
+    <p>&copy; 2025 Parfumeria</p>
+  </footer>
 
   <script src="js/gsapi.js"></script>
   <script src="js/main.js"></script>
